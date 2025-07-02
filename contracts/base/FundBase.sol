@@ -2,7 +2,7 @@
 pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "./FundErrors.sol"; 
+import "../utils/FundErrors.sol"; 
 
 /// @title FundBase - Abstract base contract for fund logic
 /// @notice Stores owner and provides internal ETH sending function

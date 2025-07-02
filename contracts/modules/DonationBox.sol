@@ -1,8 +1,8 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
-import {FundBase} from './FundBase.sol';
-import "./FundErrors.sol"; 
+import {FundBase} from '../base/FundBase.sol';
+import "../utils/FundErrors.sol"; 
 
 /// @title DonationBox - Tip jar for giving ETH donations to owner
 /// @notice Anyone can donate ETH, only owner can withdraw
@@ -10,9 +10,17 @@ contract DonationBox is FundBase{
     constructor() FundBase(){}
 
     /// @notice Accepts ETH donations from anyone
-    function depositFunds() external payable {
+    function depositFunds() public payable {
         if (msg.value <= 0) revert ZeroValueNotAllowed();
         emit Deposit(msg.sender, msg.value);
+    }
+
+    fallback() external payable {
+        depositFunds();
+    }
+
+    receive() external payable {
+        depositFunds();
     }
 
     /// @notice Allows owner to withdraw a specific amount

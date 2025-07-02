@@ -1,8 +1,8 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
-import {FundBase} from './FundBase.sol';
-import "./FundErrors.sol"; 
+import {FundBase} from '../base/FundBase.sol';
+import "../utils/FundErrors.sol"; 
 
 /// @title Vault - Deposit and withdraw system per user
 /// @notice Users can deposit for themselves or others and withdraw their own funds
@@ -20,8 +20,16 @@ contract Vault is FundBase{
         emit Deposit(recipient, msg.value);
     }
 
+    fallback() external payable{
+        depositFunds(msg.sender);
+    }
+    
+    receive() external payable{
+        depositFunds(msg.sender);
+    }
+
     /// @notice Shortcut for topping up your own balance
-    function topUp() public payable{
+    function topUp() external payable{
         depositFunds(msg.sender);
     }  
 

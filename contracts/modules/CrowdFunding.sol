@@ -1,8 +1,8 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
-import {FundBase} from './FundBase.sol';
-import "./FundErrors.sol"; 
+import {FundBase} from '../base/FundBase.sol';
+import "../utils/FundErrors.sol"; 
 
 /// @title Crowdfunding - Campaign contract with refund logic
 /// @notice Accepts user funds toward a target; allows refunds if cancelled
@@ -26,6 +26,14 @@ contract Crowdfunding is FundBase{
         if (msg.value <= 0) revert ZeroValueNotAllowed();   
         funds[msg.sender] += msg.value;
         emit Deposit(msg.sender, msg.value);
+    }
+
+    fallback() external payable{
+        depositFunds();
+    }
+
+    receive() external payable{
+        depositFunds();
     }
 
     /// @notice Allows owner to withdraw all funds if target reached and not cancelled
