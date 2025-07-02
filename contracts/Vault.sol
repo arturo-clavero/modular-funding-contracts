@@ -2,6 +2,7 @@
 pragma solidity ^0.8.4;
 
 import {FundBase} from './FundBase.sol';
+import "./FundErrors.sol"; 
 
 /// @title Vault - Deposit and withdraw system per user
 /// @notice Users can deposit for themselves or others and withdraw their own funds
@@ -13,9 +14,10 @@ contract Vault is FundBase{
 
     /// @notice Deposit ETH to a specific user's balance
     /// @param recipient The user whose balance will be credited
-    function depositFunds(address recipient) public payable{
-        require(msg.value > 0, "Must send ETH");
+    function depositFunds(address recipient) public payable {
+        if (msg.value <= 0) revert ZeroValueNotAllowed();
         funds[recipient] += msg.value;
+        emit Deposit(recipient, msg.value);
     }
 
     /// @notice Shortcut for topping up your own balance
@@ -25,10 +27,11 @@ contract Vault is FundBase{
 
     /// @notice Withdraw a specific amount of your own funds
     /// @param amount Amount of ETH to withdraw  
-    function withdrawFunds(uint256 amount) public returns (bool){
-        require(amount > 0 && funds[msg.sender] >= amount, "Not enough funds");
+    function withdrawFunds(uint256 amount) public nonReentrant returns (bool){
+        if (amount <= 0 || funds[msg.sender] <= amount) revert InsufficientFunds(amount, funds[msg.sender]);
         funds[msg.sender] -= amount;
-        require(sendEth(amount, msg.sender), "");
+        if (!sendEth(amount, msg.sender)) revert WithdrawalFailed();
+        emit Withdrawal(msg.sender, amount);
         return true;
     }
 
