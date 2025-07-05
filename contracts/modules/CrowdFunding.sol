@@ -2,13 +2,14 @@
 pragma solidity ^0.8.4;
 
 import {FundBase} from '../base/FundBase.sol';
+import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/automation/AutomationCompatible.sol";
 import "../utils/FundErrors.sol"; 
 
 /// @title Crowdfunding - Campaign contract with refund logic
 /// @notice Accepts user funds toward a target; allows refunds if cancelled
 /// @notice Optional deadlines, users can claim a refund if target is not funded by the deadline
 /// @notice Deadline gracePeriod of at least 10 mins, for last minute deposit transfers to go through
-contract CrowdFunding is FundBase{
+contract CrowdFunding is FundBase, AutomationCompatibleInterface{
 	mapping (address => uint256) private contributions;
     uint256 public immutable target;
     bool public isCancelled = false;
@@ -61,6 +62,14 @@ contract CrowdFunding is FundBase{
 			gracePeriod = deadline + _gracePeriod;
 		}
 		addWhiteList(_whiteList);
+	}
+
+	function checkUpkeep(bytes calldata) external view override returns (bool upkeepNeeded, bytes memory){
+		upkeepNeeded = deadline != 0 && deadline < block.timestamp;
+	}
+
+	function performUpkeep(bytes calldata) external override {
+		endCampaign();
 	}
 
 	function addWhiteList(address[] _whiteList) public onlyOwner{

@@ -15,6 +15,7 @@ A set of reusable and composable Ethereum smart contracts for managing ETH-based
 * Withdrawal block until limit.
 * Whitelisted deposit allowance.
 * Meta Data.
+* FundFactory 
 
 
 ### Contract Types
@@ -25,7 +26,6 @@ A set of reusable and composable Ethereum smart contracts for managing ETH-based
 
 ## Features To Do Now
 Chainlink ETH/USD + fiat goal logic	
-FundFactory 
 
 ## Features To Do Later
 ERC20 support 
