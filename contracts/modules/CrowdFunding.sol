@@ -7,20 +7,22 @@ import "../utils/FundErrors.sol";
 /// @title Crowdfunding - Campaign contract with refund logic
 /// @notice Accepts user funds toward a target; allows refunds if cancelled
 /// @notice Optional deadlines, users can claim a refund if target is not funded by the deadline
+/// @notice Deadline gracePeriod of at least 10 mins, for last minute deposit transfers to go through
 contract Crowdfunding is FundBase{
 	mapping (address => uint256) private contributions;
     uint256 public immutable target;
     bool public isCancelled = false;
 	bool public ended = false;
 	uint256 public deadline;
+	uint256 public gracePeriod;
 	
     event CampaignCancelled();
 	event CampaignEnded();
     event RefundClaimed(address indexed by, uint256 amount);
     
-	modifier stillActive() {
-		if (isCancelled) revert CancelledAlready();
+	modifier active() {
 		if (ended) revert EndedAlready();
+		if (isCancelled) revert CancelledAlready();
 		if (deadline != 0 && deadline < block.timestamp) endCampaign();
 		_;
 	}
@@ -31,7 +33,8 @@ contract Crowdfunding is FundBase{
     uint256 _minutes,
     uint256 _hours,
     uint256 _days,
-    uint256 _weeks
+    uint256 _weeks,
+	uint256 _gracePeriod
 	)  FundBase(){
 		target = _target;
 		deadline = _seconds * 1 seconds +
@@ -39,21 +42,28 @@ contract Crowdfunding is FundBase{
 				_hours   * 1 hours +
 				_days    * 1 days +
 				_weeks   * 1 weeks;
-		if (deadline != 0) deadline += block.timestamp;
+		if (deadline != 0) 
+		{
+			deadline += block.timestamp;
+			if (_gracePeriod == 0)
+				_gracePeriod = 10 minutes;
+			gracePeriod = deadline + _gracePeriod;
+		}
 	}
 
-    function depositFunds() public payable override stillActive{
+    function depositFunds() public payable override active{
         super.depositFunds(); 
         contributions[msg.sender] += msg.value;
     }
 
-    function withdrawFunds() public onlyOwner stillActive{
+    function withdrawFunds() public onlyOwner active{
         if (target > address(this).balance) revert GoalNotReached();
         super.withdrawFunds(address(this).balance);
     }
 
-    function cancelCampaign() public onlyOwner {
+    function cancelCampaign() private {
 		if (isCancelled) revert CancelledAlready();
+		if (block.timestamp < gracePeriod) revert AllowGracePeriod();
         isCancelled = true;
         emit CampaignCancelled();
     }
@@ -64,11 +74,33 @@ contract Crowdfunding is FundBase{
         emit CampaignEnded();
     }
 
+	function manuallyCancelCampaign() public onlyOwner{
+		cancelCampaign();
+	}
+
     function claimRefund() public {
 		uint256 refundAmount = contributions[msg.sender];
         if (!isCancelled || refundAmount == 0) revert NotEligibleForRefund();
         delete contributions[msg.sender];
 		sendEth(refundAmount);
-		emit RefundClaimed();
+		emit RefundClaimed(msg.sender, refundAmount);
     }
+
+	function getCampaignStatus() public view returns (
+    uint256 target_,
+	uint256 balance_,
+    bool ended_,
+    bool isCancelled_,
+    uint256 deadline_,
+    uint256 gracePeriod_,
+	uint256 currentTime_
+	){
+			target_ = target;
+			balance_ = address(this).balance;
+			isCancelled_ = isCancelled;
+			ended_ = ended;
+			deadline_ = deadline;
+			gracePeriod_ = gracePeriod;
+			currentTime_ = block.timestamp;
+	}
 }

@@ -8,6 +8,8 @@ error TransferFailed();
 error WithdrawalFailed();
 error RefundFailed();
 error CancelledAlready();
+error EndedAlready();
 error GoalNotReached();
+error AllowGracePeriod();
 error NotEligibleForRefund();
-error FundExceedsMaximum();
+
