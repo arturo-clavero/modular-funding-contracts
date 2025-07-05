@@ -10,3 +10,4 @@ error RefundFailed();
 error CancelledAlready();
 error GoalNotReached();
 error NotEligibleForRefund();
+error FundExceedsMaximum();

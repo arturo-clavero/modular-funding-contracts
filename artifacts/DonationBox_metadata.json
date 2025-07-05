@@ -1,0 +1,116 @@
+{
+	"compiler": {
+		"version": "0.8.30+commit.73712a01"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [],
+				"stateMutability": "nonpayable",
+				"type": "constructor"
+			},
+			{
+				"inputs": [],
+				"name": "depositFunds",
+				"outputs": [],
+				"stateMutability": "payable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "withdrawAllFunds",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"name": "withdrawFunds",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {
+				"withdrawFunds(uint256)": {
+					"params": {
+						"amount": "Amount of ETH to withdraw"
+					}
+				}
+			},
+			"title": "DonationBox - Tip jar for giving ETH donations to owner",
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {
+				"depositFunds()": {
+					"notice": "Accepts ETH donations from anyone"
+				},
+				"withdrawAllFunds()": {
+					"notice": "Allows owner to withdraw full contract balance"
+				},
+				"withdrawFunds(uint256)": {
+					"notice": "Allows owner to withdraw a specific amount"
+				}
+			},
+			"notice": "Anyone can donate ETH, only owner can withdraw",
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"contracts/DonationBox.sol": "DonationBox"
+		},
+		"evmVersion": "prague",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"contracts/DonationBox.sol": {
+			"keccak256": "0x05f106e3ec92aa5328d2b8a53b8c25db348213b3ad8ad67c767f8632172ed4c1",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://11c90435581b771b6db765809b75e4e16b118afced2b025da542165428c6d1bc",
+				"dweb:/ipfs/QmNVuqEgpYNLUQFJBjCp6TSvhzyX9AXTHzjojXCKVDkzbp"
+			]
+		},
+		"contracts/FundBase.sol": {
+			"keccak256": "0xf9819090ad9dbc5f7e6b0758bc2f76ce613f42c0d7de8aba2b251a8ff2cf001e",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://d0272a26a2011659a12587801b1b8798d166064e48c5e1d68e0ddea4a48731e8",
+				"dweb:/ipfs/QmSyXQoNQfJfYxceF4x1q7SwhtCuX21BCPuXggJFERH48K"
+			]
+		}
+	},
+	"version": 1
+}

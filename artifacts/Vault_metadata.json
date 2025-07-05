@@ -1,0 +1,137 @@
+{
+	"compiler": {
+		"version": "0.8.30+commit.73712a01"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [],
+				"stateMutability": "nonpayable",
+				"type": "constructor"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "recipient",
+						"type": "address"
+					}
+				],
+				"name": "depositFunds",
+				"outputs": [],
+				"stateMutability": "payable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "topUp",
+				"outputs": [],
+				"stateMutability": "payable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "withdrawAllFunds",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"name": "withdrawFunds",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {
+				"depositFunds(address)": {
+					"params": {
+						"recipient": "The user whose balance will be credited"
+					}
+				},
+				"withdrawFunds(uint256)": {
+					"params": {
+						"amount": "Amount of ETH to withdraw  "
+					}
+				}
+			},
+			"title": "Vault - Deposit and withdraw system per user",
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {
+				"depositFunds(address)": {
+					"notice": "Deposit ETH to a specific user's balance"
+				},
+				"topUp()": {
+					"notice": "Shortcut for topping up your own balance"
+				},
+				"withdrawAllFunds()": {
+					"notice": "Withdraw entire balance"
+				},
+				"withdrawFunds(uint256)": {
+					"notice": "Withdraw a specific amount of your own funds"
+				}
+			},
+			"notice": "Users can deposit for themselves or others and withdraw their own funds",
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"contracts/Vault.sol": "Vault"
+		},
+		"evmVersion": "prague",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"contracts/FundBase.sol": {
+			"keccak256": "0xf9819090ad9dbc5f7e6b0758bc2f76ce613f42c0d7de8aba2b251a8ff2cf001e",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://d0272a26a2011659a12587801b1b8798d166064e48c5e1d68e0ddea4a48731e8",
+				"dweb:/ipfs/QmSyXQoNQfJfYxceF4x1q7SwhtCuX21BCPuXggJFERH48K"
+			]
+		},
+		"contracts/Vault.sol": {
+			"keccak256": "0xcc0c9100bc112fb17309d314cdf7570061ba1e4b1054f5c1d95f5226c496cdd8",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://f073a70423b82387578b15573ca42efae7d6013889cd5786e4cadbad6f456701",
+				"dweb:/ipfs/QmYjXponGzzF2HgTVs1ER11esDNmJZ5GayUSwJbfhuwnMk"
+			]
+		}
+	},
+	"version": 1
+}

@@ -7,45 +7,36 @@ import "../utils/FundErrors.sol";
 /// @title Vault - Deposit and withdraw system per user
 /// @notice Users can deposit for themselves or others and withdraw their own funds
 contract Vault is FundBase{
-    // Balance tracking for each user
-    mapping (address => uint256) private funds;
-
+    mapping (address => uint256) private balances;
     constructor() FundBase(){}
 
-    /// @notice Deposit ETH to a specific user's balance
-    /// @param recipient The user whose balance will be credited
-    function depositFunds(address recipient) public payable {
-        if (msg.value <= 0) revert ZeroValueNotAllowed();
-        funds[recipient] += msg.value;
+    function depositFunds() public payable override{
+        depositFundsTo(msg.sender);
+    }
+ 
+    function depositFundsTo(address recipient) public payable {
+        if (msg.value == 0) revert ZeroValueNotAllowed();
+        balances[recipient] += msg.value;
         emit Deposit(recipient, msg.value);
     }
 
-    fallback() external payable{
-        depositFunds(msg.sender);
-    }
-    
-    receive() external payable{
-        depositFunds(msg.sender);
+    function withdrawFunds(uint256 amount) public override{
+		if (amount > balances[msg.sender] || amount == 0) revert InsufficientFunds();
+        balances[msg.sender] -= amount;
+		sendEth(amount);
     }
 
-    /// @notice Shortcut for topping up your own balance
-    function topUp() external payable{
-        depositFunds(msg.sender);
-    }  
-
-    /// @notice Withdraw a specific amount of your own funds
-    /// @param amount Amount of ETH to withdraw  
-    function withdrawFunds(uint256 amount) public nonReentrant returns (bool){
-        if (amount <= 0 || funds[msg.sender] <= amount) revert InsufficientFunds(amount, funds[msg.sender]);
-        funds[msg.sender] -= amount;
-        if (!sendEth(amount, msg.sender)) revert WithdrawalFailed();
-        emit Withdrawal(msg.sender, amount);
-        return true;
+    function withdrawAllFunds() external {
+        withdrawFunds(balances[msg.sender]);
     }
 
-    /// @notice Withdraw entire balance
-    function withdrawAllFunds() external returns (bool){
-        return withdrawFunds(funds[msg.sender]);
+	fallback() external payable override{
+        address recipient = msg.sender;
+        if (msg.data.length == 32 || msg.data.length == 20)
+            assembly {
+                recipient := shr(96, calldataload(0))
+            }
+        depositFundsTo(recipient);
     }
 }
 

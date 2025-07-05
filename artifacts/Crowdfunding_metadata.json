@@ -1,0 +1,114 @@
+{
+	"compiler": {
+		"version": "0.8.30+commit.73712a01"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_target",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "constructor"
+			},
+			{
+				"inputs": [],
+				"name": "cancel",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "claimRefund",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "depositFunds",
+				"outputs": [],
+				"stateMutability": "payable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "withdrawFunds",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {
+				"constructor": {
+					"params": {
+						"_target": "Funding goal in wei"
+					}
+				}
+			},
+			"title": "Crowdfunding - Campaign contract with refund logic",
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {
+				"cancel()": {
+					"notice": "Owner can cancel the campaign (enables refunds)"
+				},
+				"claimRefund()": {
+					"notice": "Contributors can claim a refund if campaign was cancelled"
+				},
+				"depositFunds()": {
+					"notice": "Allows users to contribute to the campaign"
+				},
+				"withdrawFunds()": {
+					"notice": "Allows owner to withdraw all funds if target reached and not cancelled"
+				}
+			},
+			"notice": "Accepts user funds toward a target; allows refunds if cancelled",
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"contracts/CrowdFunding.sol": "Crowdfunding"
+		},
+		"evmVersion": "prague",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"contracts/CrowdFunding.sol": {
+			"keccak256": "0x195020c903b95f0c63a7a6e351fb4ca4fa0d354ba8e4f854ebb7d17713bf2a8a",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://fc96a1d28a924de7382c37129d2c1d93dbdad7e2694c80e10c76d84b58711566",
+				"dweb:/ipfs/QmVnnKa4AQ9mZtT9kzaGCff8ZNGcmH9p2N3i4V3aABqKdQ"
+			]
+		},
+		"contracts/FundBase.sol": {
+			"keccak256": "0xf9819090ad9dbc5f7e6b0758bc2f76ce613f42c0d7de8aba2b251a8ff2cf001e",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://d0272a26a2011659a12587801b1b8798d166064e48c5e1d68e0ddea4a48731e8",
+				"dweb:/ipfs/QmSyXQoNQfJfYxceF4x1q7SwhtCuX21BCPuXggJFERH48K"
+			]
+		}
+	},
+	"version": 1
+}
