@@ -12,4 +12,5 @@ error EndedAlready();
 error GoalNotReached();
 error AllowGracePeriod();
 error NotEligibleForRefund();
+error InsecureLimit();
 

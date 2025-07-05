@@ -23,7 +23,7 @@ contract Vault is FundBase{
     function withdrawFunds(uint256 amount) public override{
 		if (amount > balances[msg.sender] || amount == 0) revert InsufficientFunds();
         balances[msg.sender] -= amount;
-		sendEth(amount);
+		_sendEth(amount);
     }
 
     function withdrawAllFunds() external {

@@ -82,7 +82,7 @@ contract Crowdfunding is FundBase{
 		uint256 refundAmount = contributions[msg.sender];
         if (!isCancelled || refundAmount == 0) revert NotEligibleForRefund();
         delete contributions[msg.sender];
-		sendEth(refundAmount);
+		_sendEth(refundAmount);
 		emit RefundClaimed(msg.sender, refundAmount);
     }
 
