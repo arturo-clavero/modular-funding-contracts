@@ -8,8 +8,18 @@ import "../utils/FundErrors.sol";
 /// @notice Users can deposit for themselves or others and withdraw their own funds
 contract Vault is FundBase{
     mapping (address => uint256) private balances;
-    constructor() FundBase(){}
-
+	
+	constructor	(
+			string memory name, 
+			string memory description,
+			string memory imageUri
+		)  
+		FundBase(
+			name, 
+			description, 
+			imageUri
+			){}
+			
     function depositFunds() public payable override{
         depositFundsTo(msg.sender);
     }

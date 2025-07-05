@@ -8,7 +8,13 @@ import "../utils/FundErrors.sol";
 /// @title FundBase - Abstract base contract for fund logic
 /// @notice Stores owner and provides internal ETH sending function
 contract FundBase is ReentrancyGuard, Ownable{
+	struct MetaData {
+		string name;
+		string description;
+		string imageUri;
+	}
 
+	MetaData public metaData;
 	uint256 public constant standardBlockLimit = 3;
 	mapping(address=>uint256) private previousWithdrawalBlock;
 	mapping(address=>uint256) private withdrawalBlockLimit;
@@ -23,6 +29,14 @@ contract FundBase is ReentrancyGuard, Ownable{
 		if (block.number < previousWithdrawalBlock[msg.sender] + limit)
 			revert InsecureLimit();
 		_;
+	}
+
+	constructor(
+		string memory name, 
+		string memory description, 
+		string memory imageUri
+		){
+			metadata = MetaData(name, description, imageUri);
 	}
 
 	function setWithdrawalBlockLimit(uint256 limit) external {

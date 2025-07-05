@@ -42,8 +42,11 @@ contract Crowdfunding is FundBase{
     uint256 _days,
     uint256 _weeks,
 	uint256 _gracePeriod,
-	address[] _whiteList
-	)  FundBase(){
+	address[] _whiteList,
+	string memory name, 
+	string memory description,
+	string memory imageUri
+	)  FundBase(name, description, imageUri){
 		target = _target;
 		deadline = _seconds * 1 seconds +
 				_minutes * 1 minutes +

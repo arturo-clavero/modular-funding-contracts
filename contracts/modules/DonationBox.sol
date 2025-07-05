@@ -8,6 +8,17 @@ import "../utils/FundErrors.sol";
 /// @notice Anyone can donate ETH, only owner can withdraw
 contract DonationBox is FundBase{
 
+	constructor	(
+		string memory name, 
+		string memory description,
+		string memory imageUri
+	)  
+	FundBase(
+		name, 
+		description, 
+		imageUri
+		){}
+		
     function withdrawAllFunds() external {
         withdrawFunds(address(this).balance);
     }
