@@ -13,6 +13,8 @@ A set of reusable and composable Ethereum smart contracts for managing ETH-based
 * Integrated reentrancy protection using OpenZeppelin's `ReentrancyGuard`
 * Standardized event logging to enable off-chain tracking and frontend integrationEvent logging for key actions such as deposits, withdrawals, and refunds
 * Withdrawal block until limit.
+* Whitelisted deposit allowance.
+
 
 ### Contract Types
 
@@ -21,7 +23,6 @@ A set of reusable and composable Ethereum smart contracts for managing ETH-based
 * **Vault**: Users can deposit and withdraw their individual balances
 
 ## Features To Do Now
-Whitelisted funders	
 Metadata (name, desc, goal)	
 Chainlink ETH/USD + fiat goal logic	
 FundFactory 

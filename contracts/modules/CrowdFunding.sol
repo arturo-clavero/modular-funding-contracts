@@ -15,6 +15,8 @@ contract Crowdfunding is FundBase{
 	bool public ended = false;
 	uint256 public deadline;
 	uint256 public gracePeriod;
+	mapping(address=>bool) public whiteList;
+	bool public isWhiteListed = false;
 	
     event CampaignCancelled();
 	event CampaignEnded();
@@ -27,6 +29,11 @@ contract Crowdfunding is FundBase{
 		_;
 	}
 
+	modifier whiteListAllowance() {
+		if (!isWhiteListed) return;
+		if (whiteList[msg.sender] == false) revert NotAuthorized();
+	}
+
     constructor(
     uint256 _target,
     uint256 _seconds,
@@ -34,7 +41,8 @@ contract Crowdfunding is FundBase{
     uint256 _hours,
     uint256 _days,
     uint256 _weeks,
-	uint256 _gracePeriod
+	uint256 _gracePeriod,
+	address[] _whiteList
 	)  FundBase(){
 		target = _target;
 		deadline = _seconds * 1 seconds +
@@ -49,9 +57,29 @@ contract Crowdfunding is FundBase{
 				_gracePeriod = 10 minutes;
 			gracePeriod = deadline + _gracePeriod;
 		}
+		addWhiteList(_whiteList);
 	}
 
-    function depositFunds() public payable override active{
+	function addWhiteList(address[] _whiteList) public onlyOwner{
+		if (_whiteList.length == 0) return;
+		if (!isWhiteListed) isWhiteListed = true;
+		for (uint256 i = 0; i < _whiteList.length; i++)
+			whiteList[_whiteList[i]] = true;
+	}
+
+	function removeWhiteListFounder(address blackList)external onlyOwner {
+		delete whiteList[blackList];
+	}
+	
+	function disableWhiteList()external onlyOwner{
+		isWhiteListed = false;
+	}
+
+	function enableWhiteList()external onlyOwner{
+		isWhiteListed = true;
+	}
+
+    function depositFunds() public payable override active whiteListAllowance{
         super.depositFunds(); 
         contributions[msg.sender] += msg.value;
     }
