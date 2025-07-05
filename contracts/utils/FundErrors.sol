@@ -13,4 +13,6 @@ error GoalNotReached();
 error AllowGracePeriod();
 error NotEligibleForRefund();
 error InsecureLimit();
+error InvalidChainLinkRate();
+error InsufficientDeposit();
 

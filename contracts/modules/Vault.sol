@@ -25,7 +25,7 @@ contract Vault is FundBase{
     }
  
     function depositFundsTo(address recipient) public payable {
-        if (msg.value == 0) revert ZeroValueNotAllowed();
+        if (msg.value < minDeposit || msg.value == 0) revert InsufficientDeposit();
         balances[recipient] += msg.value;
         emit Deposit(recipient, msg.value);
     }

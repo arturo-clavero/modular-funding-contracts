@@ -4,6 +4,7 @@ pragma solidity ^0.8.4;
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../utils/FundErrors.sol"; 
+import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 
 /// @title FundBase - Abstract base contract for fund logic
 /// @notice Stores owner and provides internal ETH sending function
@@ -13,11 +14,15 @@ contract FundBase is ReentrancyGuard, Ownable{
 		string description;
 		string imageUri;
 	}
-
+	uint256 public minDeposit;
+    AggregatorV3Interface internal feedUSDtoETH;
+	AggregatorV3Interface internal feedEURtoETH;
+	uint256 chainLinkDecimals = 10;
 	MetaData public metaData;
 	uint256 public constant standardBlockLimit = 3;
 	mapping(address=>uint256) private previousWithdrawalBlock;
 	mapping(address=>uint256) private withdrawalBlockLimit;
+
 
     event Deposit(address indexed from, uint256 amount);
     event Withdrawal(address indexed to, uint256 amount);
@@ -36,7 +41,41 @@ contract FundBase is ReentrancyGuard, Ownable{
 		string memory description, 
 		string memory imageUri
 		){
+			feedEURtoETH = AggregatorV3Interface(
+            	0x1b44F3514812d835EB1BDB0acB33d3fA3351Ee43
+			);
+			feedUSDtoETH = AggregatorV3Interface(
+            	0x1b44F3514812d835EB1BDB0acB33d3fA3351Ee43
+        	);
 			metadata = MetaData(name, description, imageUri);
+	}
+
+	function convert(uint256 amount, int256 rate) internal view{
+		if (rate <= 0) revert InvalidChainLinkRate();
+		return (amount * uint256(rate) / chainLinkDecimals);
+	}
+
+	function updateChainLinkDecimals(uint256 amount) onlyOwner external{
+		chainLinkDecimals = amount;
+	}
+	function getLatestEurToETH(uint256 amount) internal view returns (int) {
+        (
+            int256 answer,
+        ) = feedEURtoETH.latestRoundData();
+
+        return convert(amount, answer);
+    }
+
+	function getLatestUSDToETH(uint256 amount) internal view returns (int){
+        (
+            int256 answer,
+        ) = feedUSDtoETH.latestRoundData();
+        return convert(amount, answer);
+    }
+
+	function setMinDeposit(string calldata currency, uint256 amount) external onlyOwner{
+		if (kbacc256(currency) == kbacc256("USD")) minDeposit = getLatestUSDToETH(amount);
+		else if (kbacc256(currency) == kbacc256("EUR")) minDeposit = getLatestEurToETH(amount);
 	}
 
 	function setWithdrawalBlockLimit(uint256 limit) external {
@@ -62,7 +101,7 @@ contract FundBase is ReentrancyGuard, Ownable{
 	}
 
 	function depositFunds() public payable virtual {
-		if (msg.value == 0) revert ZeroValueNotAllowed();
+		if (msg.value < minDeposit || msg.value == 0) revert InsufficientDeposit();
       	emit Deposit(msg.sender, msg.value);
     }
 
