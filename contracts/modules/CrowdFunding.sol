@@ -8,7 +8,7 @@ import "../utils/FundErrors.sol";
 /// @notice Accepts user funds toward a target; allows refunds if cancelled
 /// @notice Optional deadlines, users can claim a refund if target is not funded by the deadline
 /// @notice Deadline gracePeriod of at least 10 mins, for last minute deposit transfers to go through
-contract Crowdfunding is FundBase{
+contract CrowdFunding is FundBase{
 	mapping (address => uint256) private contributions;
     uint256 public immutable target;
     bool public isCancelled = false;
