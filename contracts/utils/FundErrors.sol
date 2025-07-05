@@ -4,6 +4,7 @@ pragma solidity ^0.8.4;
 error NotAuthorized();
 error ZeroValueNotAllowed();
 error InsufficientFunds(uint256 requestedAmount, uint256 availableFunds);
+error InsufficientDeposit();
 error TransferFailed();
 error WithdrawalFailed();
 error RefundFailed();
@@ -13,6 +14,5 @@ error GoalNotReached();
 error AllowGracePeriod();
 error NotEligibleForRefund();
 error InsecureLimit();
-error InvalidChainLinkRate();
-error InsufficientDeposit();
+error UnsupportedCurrency();
 
