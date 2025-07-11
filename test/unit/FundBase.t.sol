@@ -5,178 +5,180 @@ import "../../src/utils/FundErrors.sol";
 import {Test, console} from "forge-std/Test.sol";
 import {FundBase} from "../../src/base/FundBase.sol";
 
+contract ConcreteFundBase is FundBase {
+    constructor(address initialOwner) FundBase(initialOwner) {}
+}
 
 contract Rejector {
-	fallback() external payable {
+    fallback() external payable {
         revert("Reject ETH");
     }
-	function trigger(FundBase fundBase, uint256 amount) external{
-		fundBase.withdrawFunds(amount);
-	}
+
+    function trigger(ConcreteFundBase fundBase, uint256 amount) external {
+        fundBase.withdrawFunds(amount);
+    }
 }
 
 contract FundBaseTest is Test {
-	FundBase public fundBase;
-	uint256 max_user_id = 1;
-	address public user = vm.addr(max_user_id);
-	address public i_owner;
-	uint256 constant VALID_WITHDRAW_AMOUNT = 1;
-	uint256 constant FUND_AMOUNT = 10;
+    ConcreteFundBase public fundBase;
+    uint256 max_user_id = 1;
+    address public user = vm.addr(max_user_id);
+    address public i_owner;
+    uint256 constant VALID_WITHDRAW_AMOUNT = 1;
+    uint256 constant FUND_AMOUNT = 10;
 
-	event Withdrawal(address indexed sender, uint256 amount);
-	event Deposit(address indexed from, uint256 amount);
+    event Withdrawal(address indexed sender, uint256 amount);
+    event Deposit(address indexed from, uint256 amount);
 
+    modifier funded() {
+        address randomGuy = uniqueUser();
+        hoax(randomGuy, FUND_AMOUNT);
+        fundBase.depositFunds{value: FUND_AMOUNT}();
+        _;
+    }
 
-	modifier funded(){
-		address randomGuy = uniqueUser();
-		hoax(randomGuy, FUND_AMOUNT);
-		fundBase.depositFunds{value: FUND_AMOUNT}();
-		_;
-	}
+    function setUp() public {
+        fundBase = new ConcreteFundBase(msg.sender);
+        i_owner = msg.sender;
+        max_user_id = 2;
+    }
 
-	function setUp() public {
-		fundBase = new FundBase(msg.sender);
-		i_owner = msg.sender;
-		max_user_id = 2;
-	}
-	function uniqueUser() private returns (address){
-		max_user_id ++;
-		return (vm.addr(max_user_id));
-	}
+    function uniqueUser() private returns (address) {
+        max_user_id++;
+        return (vm.addr(max_user_id));
+    }
 
-//	WITHDRAWAL
+    //	WITHDRAWAL
 
-	function invalidWithdrawalExpectedResults(
-		address _user, 
-		uint256 inital_user_balance, 
-		uint256 initial_contract_balance
-		) private view
-	{
-		assertEq(_user.balance, inital_user_balance);
-		assertEq(address(fundBase).balance, initial_contract_balance);
-	}
+    function invalidWithdrawalExpectedResults(
+        address _user,
+        uint256 inital_user_balance,
+        uint256 initial_contract_balance
+    ) private view {
+        assertEq(_user.balance, inital_user_balance);
+        assertEq(address(fundBase).balance, initial_contract_balance);
+    }
 
-	function testValidWithdrawal() public funded {
-		uint256 initial_contract_balance = address(fundBase).balance;
-		uint256 inital_user_balance = i_owner.balance;
+    function testValidWithdrawal() public funded {
+        uint256 initial_contract_balance = address(fundBase).balance;
+        uint256 inital_user_balance = i_owner.balance;
 
-		vm.expectEmit(true, false, false, false);
-		emit Withdrawal(i_owner, VALID_WITHDRAW_AMOUNT);
+        vm.expectEmit(true, false, false, false);
+        emit Withdrawal(i_owner, VALID_WITHDRAW_AMOUNT);
 
-		vm.prank(i_owner);
-		fundBase.withdrawFunds(VALID_WITHDRAW_AMOUNT);
+        vm.prank(i_owner);
+        fundBase.withdrawFunds(VALID_WITHDRAW_AMOUNT);
 
-		assertEq(i_owner.balance, inital_user_balance + VALID_WITHDRAW_AMOUNT);
-		assertEq(address(fundBase).balance, initial_contract_balance - VALID_WITHDRAW_AMOUNT);
-	}
+        assertEq(i_owner.balance, inital_user_balance + VALID_WITHDRAW_AMOUNT);
+        assertEq(address(fundBase).balance, initial_contract_balance - VALID_WITHDRAW_AMOUNT);
+    }
 
-	function testInvalidWithdrawNotOwner() public funded{
-		uint256 initial_contract_balance = address(fundBase).balance;
-		uint256 inital_user_balance = user.balance;	
+    function testInvalidWithdrawNotOwner() public funded {
+        uint256 initial_contract_balance = address(fundBase).balance;
+        uint256 inital_user_balance = user.balance;
 
-		vm.prank(user);
-		vm.expectRevert();
-		fundBase.withdrawFunds(VALID_WITHDRAW_AMOUNT);
-		invalidWithdrawalExpectedResults(user, inital_user_balance, initial_contract_balance);
-	}
+        vm.prank(user);
+        vm.expectRevert();
+        fundBase.withdrawFunds(VALID_WITHDRAW_AMOUNT);
+        invalidWithdrawalExpectedResults(user, inital_user_balance, initial_contract_balance);
+    }
 
-	function testInvalidWithdrawTooMuch() public funded{
-		uint256 initial_contract_balance = address(fundBase).balance;
-		uint256 inital_user_balance = i_owner.balance;
+    function testInvalidWithdrawTooMuch() public funded {
+        uint256 initial_contract_balance = address(fundBase).balance;
+        uint256 inital_user_balance = i_owner.balance;
 
-		vm.prank(i_owner);
-		vm.expectRevert();
-		fundBase.withdrawFunds(FUND_AMOUNT + 1);
-		invalidWithdrawalExpectedResults(i_owner, inital_user_balance, initial_contract_balance);
-	}
+        vm.prank(i_owner);
+        vm.expectRevert();
+        fundBase.withdrawFunds(FUND_AMOUNT + 1);
+        invalidWithdrawalExpectedResults(i_owner, inital_user_balance, initial_contract_balance);
+    }
 
-	function testInvalidWithdrawZero() public funded{
-		uint256 initial_contract_balance = address(fundBase).balance;
-		uint256 inital_user_balance = i_owner.balance;
+    function testInvalidWithdrawZero() public funded {
+        uint256 initial_contract_balance = address(fundBase).balance;
+        uint256 inital_user_balance = i_owner.balance;
 
-		vm.prank(i_owner);
-		vm.expectRevert();
-		fundBase.withdrawFunds(0);
-		invalidWithdrawalExpectedResults(i_owner, inital_user_balance, initial_contract_balance);
-	}
+        vm.prank(i_owner);
+        vm.expectRevert();
+        fundBase.withdrawFunds(0);
+        invalidWithdrawalExpectedResults(i_owner, inital_user_balance, initial_contract_balance);
+    }
 
-	function testInvalidWithdrawUserRejects() public funded{
-		uint256 initial_contract_balance = address(fundBase).balance;
-		Rejector rejector = new Rejector();
-		address ownerRejectsETH = address(rejector);
-		uint256 inital_user_balance = ownerRejectsETH.balance;
+    function testInvalidWithdrawUserRejects() public funded {
+        uint256 initial_contract_balance = address(fundBase).balance;
+        Rejector rejector = new Rejector();
+        address ownerRejectsETH = address(rejector);
+        uint256 inital_user_balance = ownerRejectsETH.balance;
 
-		vm.prank(i_owner);
-		fundBase.transferOwnership(ownerRejectsETH);
+        vm.prank(i_owner);
+        fundBase.transferOwnership(ownerRejectsETH);
 
-		vm.expectRevert();
-		rejector.trigger(fundBase, VALID_WITHDRAW_AMOUNT);
+        vm.expectRevert();
+        rejector.trigger(fundBase, VALID_WITHDRAW_AMOUNT);
 
-		invalidWithdrawalExpectedResults(ownerRejectsETH, inital_user_balance, initial_contract_balance);
-	}
+        invalidWithdrawalExpectedResults(ownerRejectsETH, inital_user_balance, initial_contract_balance);
+    }
 
-//FUNDING
-	function testValidFunding() public {
-		vm.deal(user, FUND_AMOUNT * 2);
-		uint256 initial_user_balance = user.balance;
-		uint256 initial_contract_balance = address(fundBase).balance;
-		
-		vm.expectEmit(true, false, false, false);
-		emit Deposit(user, FUND_AMOUNT);
+    //FUNDING
+    function testValidFunding() public {
+        vm.deal(user, FUND_AMOUNT * 2);
+        uint256 initial_user_balance = user.balance;
+        uint256 initial_contract_balance = address(fundBase).balance;
 
-		vm.prank(user);
-		fundBase.depositFunds{value: FUND_AMOUNT}();
+        vm.expectEmit(true, false, false, false);
+        emit Deposit(user, FUND_AMOUNT);
 
-		assertEq(address(fundBase).balance, initial_contract_balance + FUND_AMOUNT);
-		assertEq(user.balance, initial_user_balance - FUND_AMOUNT);
-	}
-	// function testInvalidFundingTooLittle() public {
+        vm.prank(user);
+        fundBase.depositFunds{value: FUND_AMOUNT}();
 
-	// }
-	function testInvalidFundingZero() public {
-		vm.deal(user, FUND_AMOUNT * 2);
-		uint256 initial_user_balance = user.balance;
-		uint256 initial_contract_balance = address(fundBase).balance;
+        assertEq(address(fundBase).balance, initial_contract_balance + FUND_AMOUNT);
+        assertEq(user.balance, initial_user_balance - FUND_AMOUNT);
+    }
+    // function testInvalidFundingTooLittle() public {
 
-		vm.expectRevert();
+    // }
+    function testInvalidFundingZero() public {
+        vm.deal(user, FUND_AMOUNT * 2);
+        uint256 initial_user_balance = user.balance;
+        uint256 initial_contract_balance = address(fundBase).balance;
 
-		vm.prank(user);
-		fundBase.depositFunds{value: 0}();
+        vm.expectRevert();
 
-		assertEq(address(fundBase).balance, initial_contract_balance);
-		assertEq(user.balance, initial_user_balance);
-	}
+        vm.prank(user);
+        fundBase.depositFunds{value: 0}();
 
-	function testFallback() public {
-		vm.deal(user, FUND_AMOUNT * 2);
-		uint256 initial_user_balance = user.balance;
-		uint256 initial_contract_balance = address(fundBase).balance;
-		
-		vm.expectEmit(true, false, false, false);
-		emit Deposit(user, FUND_AMOUNT);
+        assertEq(address(fundBase).balance, initial_contract_balance);
+        assertEq(user.balance, initial_user_balance);
+    }
 
-		vm.prank(user);
-		(bool success, ) = address(fundBase).call{value: FUND_AMOUNT}("Hello!");
-  		assertTrue(success);
+    function testFallback() public {
+        vm.deal(user, FUND_AMOUNT * 2);
+        uint256 initial_user_balance = user.balance;
+        uint256 initial_contract_balance = address(fundBase).balance;
 
-		assertEq(address(fundBase).balance, initial_contract_balance + FUND_AMOUNT);
-		assertEq(user.balance, initial_user_balance - FUND_AMOUNT);
+        vm.expectEmit(true, false, false, false);
+        emit Deposit(user, FUND_AMOUNT);
 
-	}
+        vm.prank(user);
+        (bool success,) = address(fundBase).call{value: FUND_AMOUNT}("Hello!");
+        assertTrue(success);
 
-	function testReceive() public {
-		vm.deal(user, FUND_AMOUNT * 2);
-		uint256 initial_user_balance = user.balance;
-		uint256 initial_contract_balance = address(fundBase).balance;
-		
-		vm.expectEmit(true, false, false, false);
-		emit Deposit(user, FUND_AMOUNT);
+        assertEq(address(fundBase).balance, initial_contract_balance + FUND_AMOUNT);
+        assertEq(user.balance, initial_user_balance - FUND_AMOUNT);
+    }
 
-		vm.prank(user);
-		(bool success, ) = address(fundBase).call{value: FUND_AMOUNT}("");
-  		assertTrue(success);
+    function testReceive() public {
+        vm.deal(user, FUND_AMOUNT * 2);
+        uint256 initial_user_balance = user.balance;
+        uint256 initial_contract_balance = address(fundBase).balance;
 
-		assertEq(address(fundBase).balance, initial_contract_balance + FUND_AMOUNT);
-		assertEq(user.balance, initial_user_balance - FUND_AMOUNT);
-	}
+        vm.expectEmit(true, false, false, false);
+        emit Deposit(user, FUND_AMOUNT);
+
+        vm.prank(user);
+        (bool success,) = address(fundBase).call{value: FUND_AMOUNT}("");
+        assertTrue(success);
+
+        assertEq(address(fundBase).balance, initial_contract_balance + FUND_AMOUNT);
+        assertEq(user.balance, initial_user_balance - FUND_AMOUNT);
+    }
 }
