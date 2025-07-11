@@ -4,6 +4,7 @@ pragma solidity ^0.8.13;
 import "../../src/utils/FundErrors.sol";
 import {Test, console} from "forge-std/Test.sol";
 import {FundBase} from "../../src/base/FundBase.sol";
+import {BlockRateLimiter} from "../../src/libs/BlockRateLimiter.sol";
 
 contract ConcreteFundBase is FundBase {
     constructor(string memory name, string memory description, string memory imageUri, address initialOwner)
@@ -31,7 +32,10 @@ contract FundBaseTest is Test {
     uint256 max_user_id = 1;
     address public user = vm.addr(max_user_id);
     uint256 constant VALID_WITHDRAW_AMOUNT = 1;
+    uint256 constant VALID_DOUBLE_WITHDRAW_AMOUNT = 1;
     uint256 constant FUND_AMOUNT = 10;
+    uint256 constant VALID_BLOCK_LIMIT = BlockRateLimiter.DEFAULT_LIMIT + 1;
+    uint256 constant INVALID_BLOCK_LIMIT = BlockRateLimiter.DEFAULT_LIMIT - 1;
 
     event Withdrawal(address indexed sender, uint256 amount);
     event Deposit(address indexed from, uint256 amount);
@@ -139,9 +143,7 @@ contract FundBaseTest is Test {
         assertEq(address(fundBase).balance, initial_contract_balance + FUND_AMOUNT);
         assertEq(user.balance, initial_user_balance - FUND_AMOUNT);
     }
-    // function testInvalidFundingTooLittle() public {
 
-    // }
     function testInvalidFundingZero() public {
         vm.deal(user, FUND_AMOUNT * 2);
         uint256 initial_user_balance = user.balance;
@@ -194,5 +196,102 @@ contract FundBaseTest is Test {
         assertEq(NAME, name);
         assertEq(DESCRIPTION, description);
         assertEq(IMAGEURI, imageUri);
+    }
+
+    //BLOCK-WITHDRAWAL-LIMIT
+    function increaseLimit(uint256 amount) private returns (uint256) {
+        uint256 initialBlockLimit = fundBase.getWithdrawalBlockLimit();
+        assertTrue(initialBlockLimit != amount, "Valid block limit should differ before setting");
+        fundBase.setWithdrawalBlockLimit(amount);
+        return initialBlockLimit;
+    }
+
+    function testSetWithdrawalBlockLimit() public {
+        vm.startPrank(user);
+        increaseLimit(VALID_BLOCK_LIMIT);
+        uint256 newBlockLimit = fundBase.getWithdrawalBlockLimit();
+        vm.stopPrank();
+
+        assertEq(newBlockLimit, VALID_BLOCK_LIMIT);
+    }
+
+    function testSetWithdrawalBlockLimitTooSmall() public {
+        assertTrue(
+            INVALID_BLOCK_LIMIT < BlockRateLimiter.DEFAULT_LIMIT,
+            "Invalid block limit should be smaller than the default limit"
+        );
+
+        vm.startPrank(user);
+        uint256 initialBlockLimit = fundBase.getWithdrawalBlockLimit();
+        assertTrue(INVALID_BLOCK_LIMIT < initialBlockLimit, "Invalid block limit should be smaller than any limit");
+
+        vm.expectRevert();
+        fundBase.setWithdrawalBlockLimit(INVALID_BLOCK_LIMIT);
+        uint256 newBlockLimit = fundBase.getWithdrawalBlockLimit();
+        vm.stopPrank();
+
+        assertEq(initialBlockLimit, newBlockLimit);
+    }
+
+    function testValidBlockLimitWihdrawalDefault() public funded {
+        vm.startPrank(owner);
+
+        uint256 firstBlockNum = 0;
+        vm.roll(firstBlockNum);
+        fundBase.withdrawFunds(VALID_DOUBLE_WITHDRAW_AMOUNT);
+
+        uint256 secondBlockNum = firstBlockNum + fundBase.getWithdrawalBlockLimit();
+        vm.roll(secondBlockNum);
+        fundBase.withdrawFunds(VALID_DOUBLE_WITHDRAW_AMOUNT);
+
+        vm.stopPrank();
+    }
+
+    function testValidBlockLimitWihdrawalUpdated() public funded {
+        vm.startPrank(owner);
+
+        increaseLimit(VALID_BLOCK_LIMIT);
+
+        uint256 firstBlockNum = 0;
+        vm.roll(firstBlockNum);
+        fundBase.withdrawFunds(VALID_DOUBLE_WITHDRAW_AMOUNT);
+
+        uint256 secondBlockNum = firstBlockNum + fundBase.getWithdrawalBlockLimit();
+        vm.roll(secondBlockNum);
+        fundBase.withdrawFunds(VALID_DOUBLE_WITHDRAW_AMOUNT);
+
+        vm.stopPrank();
+    }
+
+    function testInvalidBlockLimitWihdrawalDefault() public funded {
+        vm.startPrank(owner);
+
+        uint256 firstBlockNum = 0;
+        vm.roll(firstBlockNum);
+        fundBase.withdrawFunds(VALID_DOUBLE_WITHDRAW_AMOUNT);
+
+        uint256 secondBlockNum = firstBlockNum + fundBase.getWithdrawalBlockLimit() - 1;
+        vm.roll(secondBlockNum);
+        vm.expectRevert();
+        fundBase.withdrawFunds(VALID_DOUBLE_WITHDRAW_AMOUNT);
+
+        vm.stopPrank();
+    }
+
+    function testInvalidBlockLimitWihdrawalUpdated() public funded {
+        vm.startPrank(owner);
+
+        increaseLimit(VALID_BLOCK_LIMIT);
+
+        uint256 firstBlockNum = 0;
+        vm.roll(firstBlockNum);
+        fundBase.withdrawFunds(VALID_DOUBLE_WITHDRAW_AMOUNT);
+
+        uint256 secondBlockNum = firstBlockNum + fundBase.getWithdrawalBlockLimit() - 1;
+        vm.roll(secondBlockNum);
+        vm.expectRevert();
+        fundBase.withdrawFunds(VALID_DOUBLE_WITHDRAW_AMOUNT);
+
+        vm.stopPrank();
     }
 }

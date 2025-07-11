@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "../utils/FundErrors.sol";
 // import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 // import {PriceConverter} from '../libs/PriceConverter.sol';
-// import {BlockRateLimiter} from '../libs/BlockRateLimiter.sol';
+import {BlockRateLimiter} from "../libs/BlockRateLimiter.sol";
 
 abstract contract FundBase is ReentrancyGuard, Ownable {
     struct MetaData {
@@ -18,12 +18,12 @@ abstract contract FundBase is ReentrancyGuard, Ownable {
     MetaData public metaData;
 
     // uint256 public minDeposit;
-
     // PriceConverter.ConverterData private priceRate;
     // using PriceConverter for PriceConverter.ConverterData;
 
-    // BlockRateLimiter.LimitData private blockRate;
-    // using BlockRateLimiter for BlockRateLimiter.LimitData;
+    BlockRateLimiter.LimitData private blockRate;
+
+    using BlockRateLimiter for BlockRateLimiter.LimitData;
 
     event Deposit(address indexed from, uint256 amount);
     event Withdrawal(address indexed to, uint256 amount);
@@ -39,19 +39,19 @@ abstract contract FundBase is ReentrancyGuard, Ownable {
     // 	minDeposit = priceRate.getRates(amount, currency);
     // }
 
-    // function setWithdrawalBlockLimit(uint256 limit) external {
-    // 	blockRate.setLimit(msg.sender, limit);
-    // }
+    function setWithdrawalBlockLimit(uint256 limit) external {
+        blockRate.setLimit(limit);
+    }
 
-    // function getWithdrawalBlockLimit() external view returns (uint256) {
-    // 	return blockRate.getLimit(msg.sender);
-    // }
+    function getWithdrawalBlockLimit() external view returns (uint256) {
+        return blockRate.getLimit();
+    }
 
     function withdrawFunds(uint256 amount) public virtual onlyOwner {
         if (address(this).balance < amount || amount == 0) {
             revert InsufficientFunds(amount, address(this).balance);
         }
-        // blockRate.secureWithdrawal(msg.sender);
+        blockRate.secureWithdrawal(msg.sender);
         _sendEth(amount);
         emit Withdrawal(msg.sender, amount);
     }
