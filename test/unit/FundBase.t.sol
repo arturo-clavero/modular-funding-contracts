@@ -6,7 +6,17 @@ import {Test, console} from "forge-std/Test.sol";
 import {FundBase} from "../../src/base/FundBase.sol";
 
 contract ConcreteFundBase is FundBase {
-    constructor(address initialOwner) FundBase(initialOwner) {}
+    constructor(
+		string memory name,
+        string memory description,
+        string memory imageUri,
+        address initialOwner
+	) FundBase(
+		name, 
+		description, 
+		imageUri, 
+		initialOwner
+		) {}
 }
 
 contract Rejector {
@@ -21,9 +31,13 @@ contract Rejector {
 
 contract FundBaseTest is Test {
     ConcreteFundBase public fundBase;
+	address public owner;
+	string constant NAME = "test-name";
+    string constant DESCRIPTION = "test-description";
+    string constant IMAGEURI = "test-image";
+
     uint256 max_user_id = 1;
     address public user = vm.addr(max_user_id);
-    address public i_owner;
     uint256 constant VALID_WITHDRAW_AMOUNT = 1;
     uint256 constant FUND_AMOUNT = 10;
 
@@ -38,8 +52,8 @@ contract FundBaseTest is Test {
     }
 
     function setUp() public {
-        fundBase = new ConcreteFundBase(msg.sender);
-        i_owner = msg.sender;
+        fundBase = new ConcreteFundBase(NAME, DESCRIPTION, IMAGEURI, msg.sender);
+        owner = msg.sender;
         max_user_id = 2;
     }
 
@@ -61,15 +75,15 @@ contract FundBaseTest is Test {
 
     function testValidWithdrawal() public funded {
         uint256 initial_contract_balance = address(fundBase).balance;
-        uint256 inital_user_balance = i_owner.balance;
+        uint256 inital_user_balance = owner.balance;
 
         vm.expectEmit(true, false, false, false);
-        emit Withdrawal(i_owner, VALID_WITHDRAW_AMOUNT);
+        emit Withdrawal(owner, VALID_WITHDRAW_AMOUNT);
 
-        vm.prank(i_owner);
+        vm.prank(owner);
         fundBase.withdrawFunds(VALID_WITHDRAW_AMOUNT);
 
-        assertEq(i_owner.balance, inital_user_balance + VALID_WITHDRAW_AMOUNT);
+        assertEq(owner.balance, inital_user_balance + VALID_WITHDRAW_AMOUNT);
         assertEq(address(fundBase).balance, initial_contract_balance - VALID_WITHDRAW_AMOUNT);
     }
 
@@ -85,22 +99,22 @@ contract FundBaseTest is Test {
 
     function testInvalidWithdrawTooMuch() public funded {
         uint256 initial_contract_balance = address(fundBase).balance;
-        uint256 inital_user_balance = i_owner.balance;
+        uint256 inital_user_balance = owner.balance;
 
-        vm.prank(i_owner);
+        vm.prank(owner);
         vm.expectRevert();
         fundBase.withdrawFunds(FUND_AMOUNT + 1);
-        invalidWithdrawalExpectedResults(i_owner, inital_user_balance, initial_contract_balance);
+        invalidWithdrawalExpectedResults(owner, inital_user_balance, initial_contract_balance);
     }
 
     function testInvalidWithdrawZero() public funded {
         uint256 initial_contract_balance = address(fundBase).balance;
-        uint256 inital_user_balance = i_owner.balance;
+        uint256 inital_user_balance = owner.balance;
 
-        vm.prank(i_owner);
+        vm.prank(owner);
         vm.expectRevert();
         fundBase.withdrawFunds(0);
-        invalidWithdrawalExpectedResults(i_owner, inital_user_balance, initial_contract_balance);
+        invalidWithdrawalExpectedResults(owner, inital_user_balance, initial_contract_balance);
     }
 
     function testInvalidWithdrawUserRejects() public funded {
@@ -109,7 +123,7 @@ contract FundBaseTest is Test {
         address ownerRejectsETH = address(rejector);
         uint256 inital_user_balance = ownerRejectsETH.balance;
 
-        vm.prank(i_owner);
+        vm.prank(owner);
         fundBase.transferOwnership(ownerRejectsETH);
 
         vm.expectRevert();
@@ -181,4 +195,13 @@ contract FundBaseTest is Test {
         assertEq(address(fundBase).balance, initial_contract_balance + FUND_AMOUNT);
         assertEq(user.balance, initial_user_balance - FUND_AMOUNT);
     }
+
+//METADATA
+	function testMetaData() public view {
+		(string memory name, string memory description, string memory imageUri) = fundBase.metaData();
+		assertEq(NAME, name);
+		assertEq(DESCRIPTION, description);
+		assertEq(IMAGEURI, imageUri);
+	}
+
 }

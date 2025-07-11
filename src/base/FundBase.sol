@@ -9,13 +9,13 @@ import "../utils/FundErrors.sol";
 // import {BlockRateLimiter} from '../libs/BlockRateLimiter.sol';
 
 abstract contract FundBase is ReentrancyGuard, Ownable {
-    // struct MetaData {
-    // 	string name;
-    // 	string description;
-    // 	string imageUri;
-    // }
+    struct MetaData {
+    	string name;
+    	string description;
+    	string imageUri;
+    }
 
-    // MetaData public immutable metaData;
+    MetaData public metaData;
 
     // uint256 public minDeposit;
 
@@ -29,13 +29,13 @@ abstract contract FundBase is ReentrancyGuard, Ownable {
     event Withdrawal(address indexed to, uint256 amount);
 
     constructor(
-        // string memory name,
-        // string memory description,
-        // string memory imageUri,
+        string memory name,
+        string memory description,
+        string memory imageUri,
         address initialOwner
     ) Ownable(initialOwner) {
         // priceRate.initialize();
-        // metaData = MetaData(name, description, imageUri);
+        metaData = MetaData(name, description, imageUri);
     }
 
     // function setMinDeposit(uint256 amount, string calldata currency) public onlyOwner {
