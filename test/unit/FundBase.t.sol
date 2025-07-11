@@ -6,17 +6,9 @@ import {Test, console} from "forge-std/Test.sol";
 import {FundBase} from "../../src/base/FundBase.sol";
 
 contract ConcreteFundBase is FundBase {
-    constructor(
-		string memory name,
-        string memory description,
-        string memory imageUri,
-        address initialOwner
-	) FundBase(
-		name, 
-		description, 
-		imageUri, 
-		initialOwner
-		) {}
+    constructor(string memory name, string memory description, string memory imageUri, address initialOwner)
+        FundBase(name, description, imageUri, initialOwner)
+    {}
 }
 
 contract Rejector {
@@ -31,8 +23,8 @@ contract Rejector {
 
 contract FundBaseTest is Test {
     ConcreteFundBase public fundBase;
-	address public owner;
-	string constant NAME = "test-name";
+    address public owner;
+    string constant NAME = "test-name";
     string constant DESCRIPTION = "test-description";
     string constant IMAGEURI = "test-image";
 
@@ -196,12 +188,11 @@ contract FundBaseTest is Test {
         assertEq(user.balance, initial_user_balance - FUND_AMOUNT);
     }
 
-//METADATA
-	function testMetaData() public view {
-		(string memory name, string memory description, string memory imageUri) = fundBase.metaData();
-		assertEq(NAME, name);
-		assertEq(DESCRIPTION, description);
-		assertEq(IMAGEURI, imageUri);
-	}
-
+    //METADATA
+    function testMetaData() public view {
+        (string memory name, string memory description, string memory imageUri) = fundBase.metaData();
+        assertEq(NAME, name);
+        assertEq(DESCRIPTION, description);
+        assertEq(IMAGEURI, imageUri);
+    }
 }

@@ -10,9 +10,9 @@ import "../utils/FundErrors.sol";
 
 abstract contract FundBase is ReentrancyGuard, Ownable {
     struct MetaData {
-    	string name;
-    	string description;
-    	string imageUri;
+        string name;
+        string description;
+        string imageUri;
     }
 
     MetaData public metaData;
@@ -28,12 +28,9 @@ abstract contract FundBase is ReentrancyGuard, Ownable {
     event Deposit(address indexed from, uint256 amount);
     event Withdrawal(address indexed to, uint256 amount);
 
-    constructor(
-        string memory name,
-        string memory description,
-        string memory imageUri,
-        address initialOwner
-    ) Ownable(initialOwner) {
+    constructor(string memory name, string memory description, string memory imageUri, address initialOwner)
+        Ownable(initialOwner)
+    {
         // priceRate.initialize();
         metaData = MetaData(name, description, imageUri);
     }
