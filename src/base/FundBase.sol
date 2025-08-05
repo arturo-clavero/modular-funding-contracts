@@ -4,40 +4,35 @@ pragma solidity ^0.8.4;
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../utils/FundErrors.sol";
-// import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
-// import {PriceConverter} from '../libs/PriceConverter.sol';
+import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
+import {PriceConverter} from "../libs/PriceConverter.sol";
 import {BlockRateLimiter} from "../libs/BlockRateLimiter.sol";
 
 abstract contract FundBase is ReentrancyGuard, Ownable {
     struct MetaData {
         string name;
         string description;
-        string imageUri;
     }
 
     MetaData public metaData;
-
-    // uint256 public minDeposit;
-    // PriceConverter.ConverterData private priceRate;
-    // using PriceConverter for PriceConverter.ConverterData;
-
+    uint256 public minDeposit;
+    address private priceFeedUSD;
     BlockRateLimiter.LimitData private blockRate;
 
+    using PriceConverter for uint256;
     using BlockRateLimiter for BlockRateLimiter.LimitData;
 
     event Deposit(address indexed from, uint256 amount);
     event Withdrawal(address indexed to, uint256 amount);
 
-    constructor(string memory name, string memory description, string memory imageUri, address initialOwner)
-        Ownable(initialOwner)
-    {
-        // priceRate.initialize();
-        metaData = MetaData(name, description, imageUri);
+    constructor(string memory name, string memory description, address _priceFeedUSD) Ownable(msg.sender) {
+        priceFeedUSD = _priceFeedUSD;
+        metaData = MetaData(name, description);
     }
 
-    // function setMinDeposit(uint256 amount, string calldata currency) public onlyOwner {
-    // 	minDeposit = priceRate.getRates(amount, currency);
-    // }
+    function setMinDeposit(uint256 amount, string calldata currency) public onlyOwner {
+        minDeposit = PriceConverter.getRates(amount, currency, priceFeedUSD);
+    }
 
     function setWithdrawalBlockLimit(uint256 limit) external {
         blockRate.setLimit(limit);
@@ -62,8 +57,7 @@ abstract contract FundBase is ReentrancyGuard, Ownable {
     }
 
     function depositFunds() public payable virtual {
-        // if (msg.value < minDeposit || msg.value == 0) {
-        if (msg.value == 0) {
+        if (msg.value < minDeposit || msg.value == 0) {
             revert InsufficientDeposit();
         }
         emit Deposit(msg.sender, msg.value);

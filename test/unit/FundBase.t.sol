@@ -3,31 +3,24 @@ pragma solidity ^0.8.13;
 
 import "../../src/utils/FundErrors.sol";
 import {Test, console} from "forge-std/Test.sol";
-import {FundBase} from "../../src/base/FundBase.sol";
+// import {FundBase} from "../../src/base/FundBase.sol";
+import {FundBaseDeploy, FundBaseAbstraction} from "../../script/FundBaseDeploy.s.sol";
+import {FundConstants} from "../utils/FundConstants.sol";
 import {BlockRateLimiter} from "../../src/libs/BlockRateLimiter.sol";
-
-contract ConcreteFundBase is FundBase {
-    constructor(string memory name, string memory description, string memory imageUri, address initialOwner)
-        FundBase(name, description, imageUri, initialOwner)
-    {}
-}
 
 contract Rejector {
     fallback() external payable {
         revert("Reject ETH");
     }
 
-    function trigger(ConcreteFundBase fundBase, uint256 amount) external {
+    function trigger(FundBaseAbstraction fundBase, uint256 amount) external {
         fundBase.withdrawFunds(amount);
     }
 }
 
 contract FundBaseTest is Test {
-    ConcreteFundBase public fundBase;
+    FundBaseAbstraction public fundBase;
     address public owner;
-    string constant NAME = "test-name";
-    string constant DESCRIPTION = "test-description";
-    string constant IMAGEURI = "test-image";
 
     uint256 max_user_id = 1;
     address public user = vm.addr(max_user_id);
@@ -41,15 +34,21 @@ contract FundBaseTest is Test {
     event Deposit(address indexed from, uint256 amount);
 
     modifier funded() {
+        console.log("balance before funding:", address(fundBase).balance);
         address randomGuy = uniqueUser();
         hoax(randomGuy, FUND_AMOUNT);
         fundBase.depositFunds{value: FUND_AMOUNT}();
+        console.log("balance after funding:", address(fundBase).balance);
         _;
     }
 
     function setUp() public {
-        fundBase = new ConcreteFundBase(NAME, DESCRIPTION, IMAGEURI, msg.sender);
-        owner = msg.sender;
+        owner = address(0x1234);
+        vm.prank(owner);
+        fundBase = new FundBaseAbstraction(
+            FundConstants.NAME, FundConstants.DESCRIPTION, vm.envAddress("USD_PRICE_FEED_ADDRESS")
+        );
+        console.log("balance at set up:", address(fundBase).balance);
         max_user_id = 2;
     }
 
@@ -99,7 +98,9 @@ contract FundBaseTest is Test {
 
         vm.prank(owner);
         vm.expectRevert();
+        console.log("balance before withdraw too much:", address(fundBase).balance);
         fundBase.withdrawFunds(FUND_AMOUNT + 1);
+        console.log("balance after withdraw too much:", address(fundBase).balance);
         invalidWithdrawalExpectedResults(owner, inital_user_balance, initial_contract_balance);
     }
 
@@ -192,10 +193,9 @@ contract FundBaseTest is Test {
 
     //METADATA
     function testMetaData() public view {
-        (string memory name, string memory description, string memory imageUri) = fundBase.metaData();
-        assertEq(NAME, name);
-        assertEq(DESCRIPTION, description);
-        assertEq(IMAGEURI, imageUri);
+        (string memory name, string memory description) = fundBase.metaData();
+        assertEq(FundConstants.NAME, name);
+        assertEq(FundConstants.DESCRIPTION, description);
     }
 
     //BLOCK-WITHDRAWAL-LIMIT
