@@ -27,16 +27,15 @@ contract FundFactory {
 	/// @notice Creates a new DonationBox contract
 	/// @param name The name of the fund
 	/// @param description A description of the fund
-	/// @param imageUri URI to an optional fund image (e.g., IPFS)
 	function createDonationBox(
 		string memory name,
-		string memory description, 
-		string memory imageUri
+		string memory description,
+		address priceFeed
 	) external {
 		DonationBox newFundContract = new DonationBox(
 			name,
-			description, 
-			imageUri
+			description,
+			priceFeed
 		);
 		registerContract(address(newFundContract));
 	}
@@ -44,16 +43,15 @@ contract FundFactory {
 	/// @notice Creates a new Vault contract
 	/// @param name The name of the vault
 	/// @param description A description of the vault
-	/// @param imageUri URI to an optional vault image
 	function createVault(
 		string memory name,
 		string memory description, 
-		string memory imageUri
+		address priceFeed
 	) external {
 		Vault newFundContract = new Vault(
 			name, 
 			description,
-			imageUri
+			priceFeed
 		);
 		registerContract(address(newFundContract));
 	}
@@ -69,8 +67,7 @@ contract FundFactory {
 	/// @param _whiteList Optional whitelist addresses for restricted access
 	/// @param name The name of the crowdfunding campaign
 	/// @param description A description of the campaign
-	/// @param imageUri URI to an optional campaign image
-	function createCrowFundingContract(
+	function createCrowdFundingContract(
 		uint256 _target,
 		uint256 _seconds,
 		uint256 _minutes,
@@ -81,7 +78,7 @@ contract FundFactory {
 		address[] memory _whiteList,
 		string memory name, 
 		string memory description,
-		string memory imageUri
+		address priceFeed
 	) external {
 		CrowdFunding newFundContract = new CrowdFunding(
 			_target, 
@@ -94,7 +91,7 @@ contract FundFactory {
 			_whiteList, 
 			name, 
 			description, 
-			imageUri
+			priceFeed
 		);
 		registerContract(address(newFundContract));
 	}

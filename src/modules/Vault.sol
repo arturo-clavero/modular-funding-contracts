@@ -13,12 +13,11 @@ contract Vault is FundBase {
 	/// @notice Constructs the Vault with metadata
 	/// @param name The name of the vault
 	/// @param description A description of the vault’s purpose
-	/// @param imageUri URI for an optional image representing the vault
 	constructor(
 		string memory name, 
 		string memory description,
-		string memory imageUri
-	) FundBase(name, description, imageUri) {}
+		address priceFeed
+	) FundBase(name, description, priceFeed) {}
 
 	/// @notice Deposit ETH for the caller’s own balance
 	/// @dev Overrides base depositFunds to record per-user balance

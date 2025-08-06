@@ -34,11 +34,9 @@ contract FundBaseTest is Test {
     event Deposit(address indexed from, uint256 amount);
 
     modifier funded() {
-        console.log("balance before funding:", address(fundBase).balance);
         address randomGuy = uniqueUser();
         hoax(randomGuy, FUND_AMOUNT);
         fundBase.depositFunds{value: FUND_AMOUNT}();
-        console.log("balance after funding:", address(fundBase).balance);
         _;
     }
 
@@ -48,7 +46,6 @@ contract FundBaseTest is Test {
         fundBase = new FundBaseAbstraction(
             FundConstants.NAME, FundConstants.DESCRIPTION, vm.envAddress("USD_PRICE_FEED_ADDRESS")
         );
-        console.log("balance at set up:", address(fundBase).balance);
         max_user_id = 2;
     }
 
@@ -98,9 +95,7 @@ contract FundBaseTest is Test {
 
         vm.prank(owner);
         vm.expectRevert();
-        console.log("balance before withdraw too much:", address(fundBase).balance);
         fundBase.withdrawFunds(FUND_AMOUNT + 1);
-        console.log("balance after withdraw too much:", address(fundBase).balance);
         invalidWithdrawalExpectedResults(owner, inital_user_balance, initial_contract_balance);
     }
 

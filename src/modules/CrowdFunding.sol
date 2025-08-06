@@ -71,7 +71,6 @@ contract CrowdFunding is FundBase, AutomationCompatibleInterface {
 	/// @param _whiteList Initial whitelist addresses (optional)
 	/// @param name Campaign name
 	/// @param description Campaign description
-	/// @param imageUri URI of campaign image
 	constructor(
 		uint256 _target,
 		uint256 _seconds,
@@ -83,8 +82,8 @@ contract CrowdFunding is FundBase, AutomationCompatibleInterface {
 		address[] memory _whiteList,
 		string memory name, 
 		string memory description,
-		string memory imageUri
-	) FundBase(name, description, imageUri) {
+		address priceFeed
+	) FundBase(name, description, priceFeed) {
 		target = _target;
 		deadline = _seconds * 1 seconds +
 				_minutes * 1 minutes +

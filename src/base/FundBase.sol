@@ -16,8 +16,8 @@ abstract contract FundBase is ReentrancyGuard, Ownable {
 
     MetaData public metaData;
     uint256 public minDeposit;
-    address private priceFeedUSD;
-    BlockRateLimiter.LimitData private blockRate;
+    address internal priceFeedUSD;
+    BlockRateLimiter.LimitData internal blockRate;
 
     using PriceConverter for uint256;
     using BlockRateLimiter for BlockRateLimiter.LimitData;
@@ -44,7 +44,7 @@ abstract contract FundBase is ReentrancyGuard, Ownable {
 
     function withdrawFunds(uint256 amount) public virtual onlyOwner {
         if (address(this).balance < amount || amount == 0) {
-            revert InsufficientFunds(amount, address(this).balance);
+            revert InsufficientFunds();
         }
         blockRate.secureWithdrawal(msg.sender);
         _sendEth(amount);
@@ -63,11 +63,11 @@ abstract contract FundBase is ReentrancyGuard, Ownable {
         emit Deposit(msg.sender, msg.value);
     }
 
-    fallback() external payable {
+    fallback() external payable virtual{
         depositFunds();
     }
 
-    receive() external payable {
+    receive() external payable virtual{
         depositFunds();
     }
 }

@@ -8,9 +8,7 @@ error NotAuthorized();
 error ZeroValueNotAllowed();
 
 /// @notice Thrown when a withdrawal or operation requests more funds than available
-/// @param requestedAmount The amount requested
-/// @param availableFunds The amount currently available
-error InsufficientFunds(uint256 requestedAmount, uint256 availableFunds);
+error InsufficientFunds();
 
 /// @notice Thrown when a deposit amount does not meet minimum required
 error InsufficientDeposit();
