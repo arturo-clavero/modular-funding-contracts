@@ -23,6 +23,7 @@ contract Vault is FundBase {
         depositFundsTo(msg.sender);
     }
 
+    /// @notice get balance of caller
     function getMyBalance() public view returns (uint256) {
         return balances[msg.sender];
     }

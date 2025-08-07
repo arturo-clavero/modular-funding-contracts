@@ -16,6 +16,11 @@ contract FundFactory {
     /// @param owner Address of the sender (creator)
     event FundContractCreated(address indexed newContract, address indexed owner);
 
+    /// @notice Get count of deployed contracts
+    function getDeployedContractsCount() public view returns (uint256) {
+        return deployedFundContracts.length;
+    }
+
     /// @dev Internal function to register a deployed fund contract
     /// @param newFundContract Address of the new contract
     function registerContract(address newFundContract) internal {
