@@ -28,6 +28,9 @@ error CancelledAlready();
 /// @notice Thrown when an operation is attempted on a campaign that has already ended
 error EndedAlready();
 
+/// @notice Thrown when an operation is attempted on a campaign with an expired deadline
+error DeadlinePassed();
+
 /// @notice Thrown when funding goal is not reached but withdrawal is attempted
 error GoalNotReached();
 

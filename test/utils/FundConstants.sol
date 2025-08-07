@@ -11,5 +11,5 @@ library FundConstants {
     uint256 public constant HOURS = 1;
     uint256 public constant DAYS = 0;
     uint256 public constant WEEKS = 0;
-    uint256 public constant GRACE_PERIOD = 300;//seconds
+    uint256 public constant GRACE_PERIOD = 300; //seconds
 }

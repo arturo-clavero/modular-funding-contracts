@@ -19,8 +19,8 @@ contract CrowdFundingDeploy is Script {
             FundConstants.WEEKS,
             FundConstants.GRACE_PERIOD,
             arr,
-            FundConstants.NAME, 
-            FundConstants.DESCRIPTION, 
+            FundConstants.NAME,
+            FundConstants.DESCRIPTION,
             vm.envAddress("USD_PRICE_FEED_ADDRESS")
         );
         vm.stopBroadcast();

@@ -57,17 +57,17 @@ abstract contract FundBase is ReentrancyGuard, Ownable {
     }
 
     function depositFunds() public payable virtual {
-        if (msg.value < minDeposit || msg.value == 0) {
+        if (msg.value == 0 || msg.value < minDeposit) {
             revert InsufficientDeposit();
         }
         emit Deposit(msg.sender, msg.value);
     }
 
-    fallback() external payable virtual{
+    fallback() external payable virtual {
         depositFunds();
     }
 
-    receive() external payable virtual{
+    receive() external payable virtual {
         depositFunds();
     }
 }
