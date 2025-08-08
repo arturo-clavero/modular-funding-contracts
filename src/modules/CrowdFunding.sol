@@ -98,94 +98,6 @@ contract CrowdFunding is FundBase, AutomationCompatibleInterface {
         addWhiteList(_whiteList);
     }
 
-    /// @notice Chainlink Automation checkUpkeep method for deadline-based upkeep
-    /// @dev Returns true if campaign deadline has passed and upkeep needed
-    /// @return upkeepNeeded True if upkeep is needed
-    /// @return performData Empty bytes, no data passed to performUpkeep
-    function checkUpkeep(bytes calldata) external view override returns (bool upkeepNeeded, bytes memory performData) {
-        upkeepNeeded = deadline != 0 && deadline < block.timestamp;
-        performData = "";
-    }
-
-    /// @notice Chainlink Automation performUpkeep method to end the campaign if deadline passed
-    function performUpkeep(bytes calldata) external override {
-        endCampaign();
-    }
-
-    /// @notice Adds addresses to the whitelist, enabling whitelist mode if not already enabled
-    /// @dev Only callable by the owner
-    /// @param _whiteList Array of addresses to add to whitelist
-    function addWhiteList(address[] memory _whiteList) public onlyOwner {
-        if (_whiteList.length == 0) return;
-        if (!isWhiteListed) isWhiteListed = true;
-        for (uint256 i = 0; i < _whiteList.length; i++) {
-            whiteList[_whiteList[i]] = true;
-        }
-    }
-
-    /// @notice Removes an address from the whitelist
-    /// @dev Only callable by the owner
-    /// @param blackList Address to remove from whitelist
-    function removeWhiteListFounder(address blackList) external onlyOwner {
-        delete whiteList[blackList];
-    }
-
-    /// @notice Disables the whitelist mode (allows anyone to contribute)
-    /// @dev Only callable by the owner
-    function disableWhiteList() external onlyOwner {
-        isWhiteListed = false;
-    }
-
-    /// @notice Enables the whitelist mode (restricts contributions to whitelisted addresses)
-    /// @dev Only callable by the owner
-    function enableWhiteList() external onlyOwner {
-        isWhiteListed = true;
-    }
-
-    /// @notice Allows users to deposit funds if campaign is active and whitelist allows
-    /// @dev Overrides FundBase.depositFunds to track individual contributions
-    function depositFunds() public payable override active whiteListAllowance {
-        super.depositFunds();
-        contributions[msg.sender] += msg.value;
-    }
-
-    /// @notice Allows the owner to withdraw funds if campaign target is reached and active
-    function withdrawFunds() public onlyOwner active {
-        if (target > address(this).balance) revert GoalNotReached();
-        super.withdrawFunds(address(this).balance);
-    }
-
-    /// @dev Internal function to cancel campaign, setting cancelled flag and emitting event
-    function cancelCampaign() private {
-        if (isCancelled) revert CancelledAlready();
-        if (block.timestamp < gracePeriod) revert AllowGracePeriod();
-        isCancelled = true;
-        emit CampaignCancelled();
-    }
-
-    /// @dev Internal function to mark campaign as ended, and cancel if goal not reached
-    function endCampaign() private {
-        ended = true;
-        if (address(this).balance < target) cancelCampaign();
-        emit CampaignEnded();
-    }
-
-    /// @notice Allows owner to manually cancel the campaign after grace period
-    function manuallyCancelCampaign() external onlyOwner {
-        cancelCampaign();
-    }
-
-    /// @notice Allows contributors to claim refunds if campaign is cancelled
-    /// @dev Refund amount is user’s contributed amount and contributions mapping cleared
-    function claimRefund() external {
-        uint256 refundAmount = contributions[msg.sender];
-        // if (!isCancelled || refundAmount == 0) revert NotEligibleForRefund();
-        if (refundAmount == 0) revert NotEligibleForRefund();
-        delete contributions[msg.sender];
-        _sendEth(refundAmount);
-        emit RefundClaimed(msg.sender, refundAmount);
-    }
-
     /// @notice Returns current campaign status details
     /// @return target_ Funding target in wei
     /// @return balance_ Current contract balance in wei
@@ -214,5 +126,93 @@ contract CrowdFunding is FundBase, AutomationCompatibleInterface {
         deadline_ = deadline;
         gracePeriod_ = gracePeriod;
         currentTime_ = block.timestamp;
+    }
+
+    /// @notice Chainlink Automation checkUpkeep method for deadline-based upkeep
+    /// @dev Returns true if campaign deadline has passed and upkeep needed
+    /// @return upkeepNeeded True if upkeep is needed
+    /// @return performData Empty bytes, no data passed to performUpkeep
+    function checkUpkeep(bytes calldata) external view override returns (bool upkeepNeeded, bytes memory performData) {
+        upkeepNeeded = deadline != 0 && deadline < block.timestamp;
+        performData = "";
+    }
+
+    /// @notice Chainlink Automation performUpkeep method to end the campaign if deadline passed
+    function performUpkeep(bytes calldata) external override {
+        endCampaign();
+    }
+
+    /// @notice Removes an address from the whitelist
+    /// @dev Only callable by the owner
+    /// @param blackList Address to remove from whitelist
+    function removeWhiteListFounder(address blackList) external onlyOwner {
+        delete whiteList[blackList];
+    }
+
+    /// @notice Disables the whitelist mode (allows anyone to contribute)
+    /// @dev Only callable by the owner
+    function disableWhiteList() external onlyOwner {
+        isWhiteListed = false;
+    }
+
+    /// @notice Enables the whitelist mode (restricts contributions to whitelisted addresses)
+    /// @dev Only callable by the owner
+    function enableWhiteList() external onlyOwner {
+        isWhiteListed = true;
+    }
+
+    /// @notice Allows owner to manually cancel the campaign after grace period
+    function manuallyCancelCampaign() external onlyOwner {
+        cancelCampaign();
+    }
+
+    /// @notice Allows contributors to claim refunds if campaign is cancelled
+    /// @dev Refund amount is user’s contributed amount and contributions mapping cleared
+    function claimRefund() external {
+        uint256 refundAmount = contributions[msg.sender];
+        // if (!isCancelled || refundAmount == 0) revert NotEligibleForRefund();
+        if (refundAmount == 0) revert NotEligibleForRefund();
+        delete contributions[msg.sender];
+        _sendEth(refundAmount);
+        emit RefundClaimed(msg.sender, refundAmount);
+    }
+
+    /// @notice Adds addresses to the whitelist, enabling whitelist mode if not already enabled
+    /// @dev Only callable by the owner
+    /// @param _whiteList Array of addresses to add to whitelist
+    function addWhiteList(address[] memory _whiteList) public onlyOwner {
+        if (_whiteList.length == 0) return;
+        if (!isWhiteListed) isWhiteListed = true;
+        for (uint256 i = 0; i < _whiteList.length; i++) {
+            whiteList[_whiteList[i]] = true;
+        }
+    }
+
+    /// @notice Allows users to deposit funds if campaign is active and whitelist allows
+    /// @dev Overrides FundBase.depositFunds to track individual contributions
+    function depositFunds() public payable override active whiteListAllowance {
+        super.depositFunds();
+        contributions[msg.sender] += msg.value;
+    }
+
+    /// @notice Allows the owner to withdraw funds if campaign target is reached and active
+    function withdrawFunds() public onlyOwner active {
+        if (target > address(this).balance) revert GoalNotReached();
+        super.withdrawFunds(address(this).balance);
+    }
+
+    /// @dev Internal function to cancel campaign, setting cancelled flag and emitting event
+    function cancelCampaign() private {
+        if (isCancelled) revert CancelledAlready();
+        if (block.timestamp < gracePeriod) revert AllowGracePeriod();
+        isCancelled = true;
+        emit CampaignCancelled();
+    }
+
+    /// @dev Internal function to mark campaign as ended, and cancel if goal not reached
+    function endCampaign() private {
+        ended = true;
+        if (address(this).balance < target) cancelCampaign();
+        emit CampaignEnded();
     }
 }

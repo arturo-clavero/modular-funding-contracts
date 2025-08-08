@@ -17,6 +17,25 @@ contract Vault is FundBase {
         FundBase(name, description, priceFeed)
     {}
 
+    /// @notice Withdraws the caller’s entire balance
+    function withdrawAllFunds() external {
+        withdrawFunds(balances[msg.sender]);
+    }
+
+    /// @notice Fallback function to accept ETH deposits
+    /// @dev Supports depositing for recipient specified by calldata (address encoded in first 20 or 32 bytes)
+    fallback() external payable override {
+        address recipient = msg.sender;
+        if (msg.data.length == 32) {
+            recipient = address(uint160(uint256(bytes32(msg.data))));
+        } else if (msg.data.length == 20) {
+            assembly {
+                recipient := shr(0x60, calldataload(0))
+            }
+        }
+        depositFundsTo(recipient);
+    }
+
     /// @notice Deposit ETH for the caller’s own balance
     /// @dev Overrides base depositFunds to record per-user balance
     function depositFunds() public payable override {
@@ -44,24 +63,5 @@ contract Vault is FundBase {
         if (amount > balances[msg.sender] || amount == 0) revert InsufficientFunds();
         balances[msg.sender] -= amount;
         _sendEth(amount);
-    }
-
-    /// @notice Withdraws the caller’s entire balance
-    function withdrawAllFunds() external {
-        withdrawFunds(balances[msg.sender]);
-    }
-
-    /// @notice Fallback function to accept ETH deposits
-    /// @dev Supports depositing for recipient specified by calldata (address encoded in first 20 or 32 bytes)
-    fallback() external payable override {
-        address recipient = msg.sender;
-        if (msg.data.length == 32) {
-            recipient = address(uint160(uint256(bytes32(msg.data))));
-        } else if (msg.data.length == 20) {
-            assembly {
-                recipient := shr(0x60, calldataload(0))
-            }
-        }
-        depositFundsTo(recipient);
     }
 }

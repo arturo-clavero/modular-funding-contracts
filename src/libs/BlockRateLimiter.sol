@@ -7,18 +7,18 @@ import "forge-std/console.sol";
 /// @notice A lightweight library to enforce per-address withdrawal rate limits based on block numbers
 /// @dev Uses a `LimitData` struct stored in the parent contract. Limits are enforced using `msg.sender`.
 library BlockRateLimiter {
+    /// @notice Stores last withdrawal block and custom limits per address
+    struct LimitData {
+        mapping(address => uint256) lastBlock;
+        mapping(address => uint256) customLimit;
+    }
+
     /// @dev Thrown when a limit is too low or not enough blocks have passed
     error InsecureLimit();
     error LimitBreached(uint256, uint256, uint256);
 
     /// @notice Default block limit if no custom limit is set
     uint256 internal constant DEFAULT_LIMIT = 3;
-
-    /// @notice Stores last withdrawal block and custom limits per address
-    struct LimitData {
-        mapping(address => uint256) lastBlock;
-        mapping(address => uint256) customLimit;
-    }
 
     /// @notice Enforces block spacing between withdrawals
     /// @dev Uses `msg.sender` to enforce limit, but updates timestamp for `user` (used in owner-withdraw context)

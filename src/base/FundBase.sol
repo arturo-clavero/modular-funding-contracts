@@ -17,18 +17,14 @@ abstract contract FundBase is ReentrancyGuard, Ownable {
     }
 
     MetaData public metaData;
-
     uint256 public minDeposit;
-
     address public priceFeedUSD;
-
     BlockRateLimiter.LimitData internal blockRate;
 
     using PriceConverter for uint256;
     using BlockRateLimiter for BlockRateLimiter.LimitData;
 
     event Deposit(address indexed from, uint256 amount);
-
     event Withdrawal(address indexed to, uint256 amount);
 
     /// @param name Name of the fund
@@ -37,6 +33,16 @@ abstract contract FundBase is ReentrancyGuard, Ownable {
     constructor(string memory name, string memory description, address _priceFeedUSD) Ownable(msg.sender) {
         priceFeedUSD = _priceFeedUSD;
         metaData = MetaData(name, description);
+    }
+
+    /// @dev Routes plain transfers directly into `depositFunds`
+    receive() external payable virtual {
+        depositFunds();
+    }
+
+    /// @dev Calls `depositFunds` when value is sent to non-existent function
+    fallback() external payable virtual {
+        depositFunds();
     }
 
     /// @dev Converts the amount to wei using the Chainlink price feed
@@ -67,13 +73,6 @@ abstract contract FundBase is ReentrancyGuard, Ownable {
         emit Withdrawal(msg.sender, amount);
     }
 
-    /// @dev Uses low-level call to avoid gas stipend issues; protected by `nonReentrant`
-    /// @param amount Amount to send in wei
-    function _sendEth(uint256 amount) internal nonReentrant {
-        (bool success,) = payable(msg.sender).call{value: amount}("");
-        if (!success) revert TransferFailed();
-    }
-
     /// @dev Requires value to meet `minDeposit` requirement
     function depositFunds() public payable virtual {
         if (msg.value == 0 || msg.value < minDeposit) {
@@ -82,13 +81,10 @@ abstract contract FundBase is ReentrancyGuard, Ownable {
         emit Deposit(msg.sender, msg.value);
     }
 
-    /// @dev Calls `depositFunds` when value is sent to non-existent function
-    fallback() external payable virtual {
-        depositFunds();
-    }
-
-    /// @dev Routes plain transfers directly into `depositFunds`
-    receive() external payable virtual {
-        depositFunds();
+    /// @dev Uses low-level call to avoid gas stipend issues; protected by `nonReentrant`
+    /// @param amount Amount to send in wei
+    function _sendEth(uint256 amount) internal nonReentrant {
+        (bool success,) = payable(msg.sender).call{value: amount}("");
+        if (!success) revert TransferFailed();
     }
 }

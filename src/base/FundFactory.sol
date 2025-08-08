@@ -16,18 +16,6 @@ contract FundFactory {
     /// @param owner Address of the sender (creator)
     event FundContractCreated(address indexed newContract, address indexed owner);
 
-    /// @notice Get count of deployed contracts
-    function getDeployedContractsCount() public view returns (uint256) {
-        return deployedFundContracts.length;
-    }
-
-    /// @dev Internal function to register a deployed fund contract
-    /// @param newFundContract Address of the new contract
-    function registerContract(address newFundContract) internal {
-        deployedFundContracts.push(newFundContract);
-        emit FundContractCreated(newFundContract, msg.sender);
-    }
-
     /// @notice Creates a new DonationBox contract
     /// @param name The name of the fund
     /// @param description A description of the fund
@@ -72,5 +60,17 @@ contract FundFactory {
             _target, _seconds, _minutes, _hours, _days, _weeks, _gracePeriod, _whiteList, name, description, priceFeed
         );
         registerContract(address(newFundContract));
+    }
+
+    /// @notice Get count of deployed contracts
+    function getDeployedContractsCount() public view returns (uint256) {
+        return deployedFundContracts.length;
+    }
+
+    /// @dev Internal function to register a deployed fund contract
+    /// @param newFundContract Address of the new contract
+    function registerContract(address newFundContract) internal {
+        deployedFundContracts.push(newFundContract);
+        emit FundContractCreated(newFundContract, msg.sender);
     }
 }
