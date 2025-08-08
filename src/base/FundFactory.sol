@@ -8,9 +8,6 @@ import {CrowdFunding} from "../modules/CrowdFunding.sol";
 /// @title FundFactory
 /// @notice Factory contract to deploy and register various fund types
 contract FundFactory {
-    /// @notice Array of all deployed fund contract addresses
-    address[] public deployedFundContracts;
-
     /// @notice Emitted when a new fund contract is created
     /// @param newContract Address of the newly deployed contract
     /// @param owner Address of the sender (creator)
@@ -21,7 +18,7 @@ contract FundFactory {
     /// @param description A description of the fund
     function createDonationBox(string memory name, string memory description, address priceFeed) external {
         DonationBox newFundContract = new DonationBox(name, description, priceFeed);
-        registerContract(address(newFundContract));
+        emit FundContractCreated(address(newFundContract), msg.sender);
     }
 
     /// @notice Creates a new Vault contract
@@ -29,7 +26,7 @@ contract FundFactory {
     /// @param description A description of the vault
     function createVault(string memory name, string memory description, address priceFeed) external {
         Vault newFundContract = new Vault(name, description, priceFeed);
-        registerContract(address(newFundContract));
+        emit FundContractCreated(address(newFundContract), msg.sender);
     }
 
     /// @notice Creates a new CrowdFunding contract
@@ -59,18 +56,6 @@ contract FundFactory {
         CrowdFunding newFundContract = new CrowdFunding(
             _target, _seconds, _minutes, _hours, _days, _weeks, _gracePeriod, _whiteList, name, description, priceFeed
         );
-        registerContract(address(newFundContract));
-    }
-
-    /// @notice Get count of deployed contracts
-    function getDeployedContractsCount() public view returns (uint256) {
-        return deployedFundContracts.length;
-    }
-
-    /// @dev Internal function to register a deployed fund contract
-    /// @param newFundContract Address of the new contract
-    function registerContract(address newFundContract) internal {
-        deployedFundContracts.push(newFundContract);
-        emit FundContractCreated(newFundContract, msg.sender);
+        emit FundContractCreated(address(newFundContract), msg.sender);
     }
 }

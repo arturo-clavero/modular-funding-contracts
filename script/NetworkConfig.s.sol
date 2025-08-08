@@ -12,7 +12,7 @@ contract NetworkConfig is Script {
     address public constant ETHEREUM_PRICEFEED = address(0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419);
     mapping(uint256 => address) public pricefeedMap;
 
-    constructor() public {
+    constructor() {
         pricefeedMap[SEPOLIA_ID] = SEPOLIA_PRICEFEED;
         pricefeedMap[ETHEREUM_ID] = ETHEREUM_PRICEFEED;
     }
