@@ -32,7 +32,6 @@ library PriceConverter {
     /// @return The converted amount in wei
     function getLatestPrice(AggregatorV3Interface priceFeed, uint256 amount) internal view returns (uint256) {
         (, int256 answer,,,) = priceFeed.latestRoundData();
-
         return convert(amount, answer, 1e8);
     }
 
@@ -43,7 +42,6 @@ library PriceConverter {
     /// @return The resulting amount in wei (ETH)
     function convert(uint256 amount, int256 rate, uint256 chainLinkDecimals) internal pure returns (uint256) {
         if (rate <= 0) revert InvalidChainLinkRate();
-
         return (amount * uint256(rate)) / chainLinkDecimals;
     }
 }

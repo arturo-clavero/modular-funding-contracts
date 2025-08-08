@@ -32,7 +32,7 @@ contract FundBaseTestFork is Test {
     uint256 constant VALID_MIN_DEPOSIT = 5;
     string constant VALID_CURRENCY = "USD";
     string constant INVALID_CURRENCY = "x";
-    address constant INVALID_PRICE_FEED = address(0x1234);
+    address constant INVALID_PRICE_FEED = address(0);
 
     event Withdrawal(address indexed sender, uint256 amount);
     event Deposit(address indexed from, uint256 amount);
@@ -42,18 +42,23 @@ contract FundBaseTestFork is Test {
         address randomGuy = uniqueUser();
         hoax(randomGuy, FUND_AMOUNT);
         fundBase.depositFunds{value: FUND_AMOUNT}();
-        console.log("balance after funding:", address(fundBase).balance);
         _;
     }
 
+    // function setUp() public {
+    // vm.createSelectFork(vm.envString("SEPOLIA_URL"));
+    // owner = address(0x1234);
+    // vm.prank(owner);
+    // fundBase = new FundBaseAbstraction(
+    //     FundConstants.NAME, FundConstants.DESCRIPTION, vm.envAddress("USD_PRICE_FEED_ADDRESS")
+    // );
+    // console.log("balance at set up:", address(fundBase).balance);
+    // max_user_id = 2;
+
     function setUp() public {
-        vm.createSelectFork(vm.envString("SEPOLIA_URL"));
-        owner = address(0x1234);
-        vm.prank(owner);
-        fundBase = new FundBaseAbstraction(
-            FundConstants.NAME, FundConstants.DESCRIPTION, vm.envAddress("USD_PRICE_FEED_ADDRESS")
-        );
-        console.log("balance at set up:", address(fundBase).balance);
+        FundBaseDeploy fundBaseDeploy = new FundBaseDeploy();
+        fundBase = fundBaseDeploy.run();
+        owner = address(msg.sender);
         max_user_id = 2;
     }
 
@@ -89,7 +94,7 @@ contract FundBaseTestFork is Test {
         uint256 prevMinDeposit = fundBase.minDeposit();
         vm.prank(owner);
         vm.expectRevert();
-        fundBase.setMinDeposit(0, INVALID_CURRENCY);
+        fundBase.setMinDeposit(VALID_MIN_DEPOSIT, INVALID_CURRENCY);
         assertEq(fundBase.minDeposit(), prevMinDeposit);
     }
 
@@ -101,16 +106,10 @@ contract FundBaseTestFork is Test {
         testSetMinDeposit();
     }
 
-    function testInvalidPriceFeed() public {
-        vm.expectRevert();
-        PriceConverter.getRates(VALID_MIN_DEPOSIT, VALID_CURRENCY, INVALID_PRICE_FEED);
-    }
-
     function testDepositFundsValidMinDeposit() public {
         testSetMinDeposit();
         address randomGuy = uniqueUser();
-        uint256 rate =
-            PriceConverter.getRates(VALID_MIN_DEPOSIT, VALID_CURRENCY, vm.envAddress("USD_PRICE_FEED_ADDRESS"));
+        uint256 rate = PriceConverter.getRates(VALID_MIN_DEPOSIT, VALID_CURRENCY, fundBase.priceFeedUSD());
         hoax(randomGuy, rate);
         uint256 initialBalance = randomGuy.balance;
         fundBase.depositFunds{value: rate}();
@@ -120,12 +119,20 @@ contract FundBaseTestFork is Test {
     function testDepositFundsInvalidMinDeposit() public {
         testSetMinDeposit();
         address randomGuy = uniqueUser();
-        uint256 rate =
-            PriceConverter.getRates(VALID_MIN_DEPOSIT, VALID_CURRENCY, vm.envAddress("USD_PRICE_FEED_ADDRESS"));
+        uint256 rate = PriceConverter.getRates(VALID_MIN_DEPOSIT, VALID_CURRENCY, fundBase.priceFeedUSD());
         hoax(randomGuy, rate - 1);
         uint256 initialBalance = randomGuy.balance;
         vm.expectRevert();
         fundBase.depositFunds{value: rate - 1}();
         assertEq(randomGuy.balance, initialBalance);
+    }
+
+    function testInvalidPriceFeedNew() public {
+        vm.startPrank(user);
+        FundBaseAbstraction fundBaseBadPriceFeed =
+            new FundBaseAbstraction(FundConstants.NAME, FundConstants.DESCRIPTION, vm.addr(1));
+        vm.expectRevert();
+        fundBaseBadPriceFeed.setMinDeposit(VALID_MIN_DEPOSIT, VALID_CURRENCY);
+        vm.stopPrank();
     }
 }

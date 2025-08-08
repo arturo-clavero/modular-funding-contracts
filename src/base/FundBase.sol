@@ -20,7 +20,7 @@ abstract contract FundBase is ReentrancyGuard, Ownable {
 
     uint256 public minDeposit;
 
-    address internal priceFeedUSD;
+    address public priceFeedUSD;
 
     BlockRateLimiter.LimitData internal blockRate;
 

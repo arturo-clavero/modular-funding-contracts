@@ -40,11 +40,9 @@ contract FundBaseTest is Test {
     }
 
     function setUp() public {
-        owner = address(0x1234);
-        vm.prank(owner);
-        fundBase = new FundBaseAbstraction(
-            FundConstants.NAME, FundConstants.DESCRIPTION, vm.envAddress("USD_PRICE_FEED_ADDRESS")
-        );
+        FundBaseDeploy fundBaseDeploy = new FundBaseDeploy();
+        fundBase = fundBaseDeploy.run();
+        owner = address(msg.sender);
         max_user_id = 2;
     }
 
